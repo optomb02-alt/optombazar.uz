@@ -1,0 +1,21 @@
+# Optombazar.uz Robots.txt
+# https://optombazar.uz
+
+User-agent: *
+Allow: /
+Allow: /product/*
+Allow: /blog
+Allow: /blog/*
+
+# Disallow admin and private pages
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /favorites
+
+# Sitemap location
+Sitemap: https://optombazar.uz/api/feed/sitemap
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
