@@ -9,6 +9,7 @@ interface StoreContextType {
     products: Product[];
     setProducts: (products: Product[]) => void;
     loading: boolean;
+    blogPosts: any[];
 
     // Cart
     cart: CartItem[];
@@ -23,26 +24,41 @@ interface StoreContextType {
     favorites: string[];
     toggleFavorite: (productId: string) => void;
 
+    // User Profile
+    user: any;
+    updateUserProfile: (profile: any) => void;
+
+    // Orders
+    orders: any[];
+
     // Categories
     categories: Category[];
     getCategoryById: (id: string) => Category | undefined;
+
+    // Orders
+    placeOrder: (order: any) => Promise<boolean>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [products, setProducts] = useState<Product[]>([]);
+    const [blogPosts, setBlogPosts] = useState<any[]>([]);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [favorites, setFavorites] = useState<string[]>([]);
+    const [user, setUser] = useState<any>(null);
+    const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Load cart and favorites from localStorage on mount
     useEffect(() => {
         const savedCart = localStorage.getItem('optombazar_cart');
         const savedFavorites = localStorage.getItem('optombazar_favorites');
+        const savedUser = localStorage.getItem('optombazar_user');
 
         if (savedCart) setCart(JSON.parse(savedCart));
         if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
+        if (savedUser) setUser(JSON.parse(savedUser));
     }, []);
 
     // Save cart to localStorage
@@ -55,22 +71,31 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         localStorage.setItem('optombazar_favorites', JSON.stringify(favorites));
     }, [favorites]);
 
+    // Save user to localStorage
+    useEffect(() => {
+        if (user) localStorage.setItem('optombazar_user', JSON.stringify(user));
+    }, [user]);
+
     // Fetch products from API
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch('/api/products');
-                if (res.ok) {
-                    const data = await res.json();
-                    setProducts(data);
-                }
+                const [productsRes, blogRes, ordersRes] = await Promise.all([
+                    fetch('/api/products'),
+                    fetch('/api/blog'),
+                    fetch('/api/orders')
+                ]);
+
+                if (productsRes.ok) setProducts(await productsRes.json());
+                if (blogRes.ok) setBlogPosts(await blogRes.json());
+                if (ordersRes.ok) setOrders(await ordersRes.json());
             } catch (error) {
-                console.error('Error fetching products:', error);
+                console.error('Error fetching data:', error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchProducts();
+        fetchData();
     }, []);
 
     const addToCart = (product: Product) => {
@@ -124,12 +149,31 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         return CATEGORIES.find((cat) => cat.id === id);
     };
 
+    const placeOrder = async (order: any) => {
+        try {
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(order),
+            });
+            if (res.ok) {
+                clearCart();
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error placing order:', error);
+            return false;
+        }
+    };
+
     return (
         <StoreContext.Provider
             value={{
                 products,
                 setProducts,
                 loading,
+                blogPosts,
                 cart,
                 addToCart,
                 removeFromCart,
@@ -139,8 +183,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 cartItemCount,
                 favorites,
                 toggleFavorite,
+                user,
+                updateUserProfile: setUser,
+                orders,
                 categories: CATEGORIES,
                 getCategoryById,
+                placeOrder,
             }}
         >
             {children}
