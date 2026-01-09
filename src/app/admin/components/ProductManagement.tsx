@@ -50,9 +50,12 @@ export default function ProductManagement() {
         deleteProduct,
         getMainCategories,
         getSubcategories
-    } = useStore() as any;
+    } = useStore();
     const { t, language } = useLanguage();
     const { showToast } = useToast();
+
+    // Format price consistently to avoid hydration mismatch
+    const formatPrice = (num: number) => num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') || '0';
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -513,7 +516,7 @@ Bu rasmni tahlil qil va quyidagi ma'lumotlarni JSON formatda qaytar:
                                                 {p.category}
                                             </td>
                                             <td className="px-8 py-6">
-                                                <p className="text-sm font-black text-indigo-600">{p.price.toLocaleString()} <span className="text-[10px]">UZS</span></p>
+                                                <p className="text-sm font-black text-indigo-600">{formatPrice(p.price)} <span className="text-[10px]">UZS</span></p>
                                                 <p className={`text-[10px] font-black uppercase tracking-widest mt-1 ${p.stock < 10 ? 'text-rose-500' : 'text-emerald-500'}`}>
                                                     {p.stock} ta mavjud
                                                 </p>
@@ -555,6 +558,6 @@ Bu rasmni tahlil qil va quyidagi ma'lumotlarni JSON formatda qaytar:
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

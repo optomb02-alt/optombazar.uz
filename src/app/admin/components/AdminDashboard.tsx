@@ -18,7 +18,11 @@ import { useStore } from '@/contexts/StoreContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AdminDashboard() {
-    const { orders, allUsers, products, t, language } = useStore() as any; // Cast for simplicity in migration
+    const { orders, allUsers, products } = useStore();
+    const { t, language } = useLanguage();
+
+    // Format price consistently to avoid hydration mismatch
+    const formatPrice = (num: number) => num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') || '0';
 
     // Basic Stats
     const totalRevenue = orders?.reduce((acc: number, order: any) => acc + order.total_amount, 0) || 0;
@@ -84,7 +88,7 @@ export default function AdminDashboard() {
     };
 
     const stats = [
-        { label: 'Jami Tushum', value: `${totalRevenue.toLocaleString()} UZS`, icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50', trend: '+12.5%', isUp: true },
+        { label: 'Jami Tushum', value: `${formatPrice(totalRevenue)} UZS`, icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50', trend: '+12.5%', isUp: true },
         { label: 'Jami Buyurtmalar', value: totalOrders, icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-50', trend: '+8.2%', isUp: true },
         { label: 'Mijozlar', value: totalUsers, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+5.4%', isUp: true },
         { label: 'Mahsulotlar', value: totalProducts, icon: Package, color: 'text-amber-600', bg: 'bg-amber-50', trend: '-2.1%', isUp: false },
@@ -137,7 +141,7 @@ export default function AdminDashboard() {
                         <div className="bg-slate-900 rounded-[40px] p-8 text-white relative overflow-hidden group">
                             <div className="relative z-10">
                                 <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-6">Bugungi Tushum</p>
-                                <h3 className="text-4xl font-black tracking-tight">{todaysRevenue.toLocaleString()} <span className="text-xs text-indigo-400 uppercase tracking-widest">UZS</span></h3>
+                                <h3 className="text-4xl font-black tracking-tight">{formatPrice(todaysRevenue)} <span className="text-xs text-indigo-400 uppercase tracking-widest">UZS</span></h3>
                                 <div className="mt-6 flex items-center gap-4">
                                     <div className="px-3 py-1 bg-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/5">
                                         {todaysOrders.length} Buyurtma
@@ -151,7 +155,7 @@ export default function AdminDashboard() {
                         <div className="bg-indigo-600 rounded-[40px] p-8 text-white relative overflow-hidden group">
                             <div className="relative z-10">
                                 <p className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-6">Haftalik Tushum</p>
-                                <h3 className="text-4xl font-black tracking-tight">{weeklyRevenue.toLocaleString()} <span className="text-xs text-white/40 uppercase tracking-widest">UZS</span></h3>
+                                <h3 className="text-4xl font-black tracking-tight">{formatPrice(weeklyRevenue)} <span className="text-xs text-white/40 uppercase tracking-widest">UZS</span></h3>
                                 <div className="mt-6 flex items-center gap-4">
                                     <div className="px-3 py-1 bg-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/5">
                                         {weeklyOrders.length} Buyurtma
@@ -187,7 +191,7 @@ export default function AdminDashboard() {
                                     </div>
                                     <div className="flex items-center justify-between sm:justify-end gap-6 text-right">
                                         <div className="text-right">
-                                            <p className="text-sm font-black text-slate-900">{order.total_amount.toLocaleString()} UZS</p>
+                                            <p className="text-sm font-black text-slate-900">{formatPrice(order.total_amount)} UZS</p>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{order.payment_method}</p>
                                         </div>
                                         <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${getStatusStyles(order.status)}`}>

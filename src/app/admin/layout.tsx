@@ -46,7 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         // In a real app, this would be an API call
-        if (username === 'Akramjon' && password === 'Hisomatik201415') {
+        if (username === 'Akramjon' && password === 'Hisobot201415') {
             setIsAuthenticated(true);
             sessionStorage.setItem('optombazar_admin_auth', 'true');
             showToast('Xush kelibsiz!', 'success');

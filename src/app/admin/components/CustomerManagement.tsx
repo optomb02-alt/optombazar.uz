@@ -5,13 +5,20 @@ import { Users, Search, MoreVertical, Mail, Phone, Calendar, UserCheck } from 'l
 import { useStore } from '@/contexts/StoreContext';
 
 export default function CustomerManagement() {
-    const { allUsers } = useStore() as any;
+    const { allUsers } = useStore();
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredUsers = allUsers?.filter((u: any) =>
         u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.phone?.includes(searchTerm)
     ) || [];
+
+    // Hydration-safe date formatting
+    const formatDate = (dateString: string) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+    };
 
     return (
         <div className="space-y-10">
@@ -54,7 +61,7 @@ export default function CustomerManagement() {
                                 </div>
                                 <div className="flex items-center gap-3 text-slate-400">
                                     <Calendar size={14} className="text-indigo-600" />
-                                    <span className="text-xs font-bold">Ro'yxatdan o'tdi: {new Date(user.created_at || Date.now()).toLocaleDateString()}</span>
+                                    <span className="text-xs font-bold">Ro'yxatdan o'tdi: {formatDate(user.created_at)}</span>
                                 </div>
                             </div>
 

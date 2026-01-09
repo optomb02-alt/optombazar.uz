@@ -18,7 +18,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/contexts/ToastContext';
 
 export default function OrderManagement() {
-    const { orders, updateOrderStatus, t, language } = useStore() as any;
+    const { orders, updateOrderStatus } = useStore();
+    const { t, language } = useLanguage();
     const { showToast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -123,7 +124,7 @@ export default function OrderManagement() {
                                             <div>
                                                 <p className="text-sm font-black text-slate-900">{order.customer_name}</p>
                                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{order.customer_phone}</p>
-                                                <p className="text-[8px] text-slate-300 font-bold uppercase tracking-widest mt-1">ID: {order.id?.slice(-8)}</p>
+                                                <p className="text-[8px] text-slate-300 font-bold uppercase tracking-widest mt-1">ID: {String(order.id || '').slice(-8)}</p>
                                             </div>
                                         </div>
                                     </td>

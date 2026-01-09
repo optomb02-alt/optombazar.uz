@@ -45,6 +45,7 @@ interface StoreContextType {
     updateProduct: (product: any) => Promise<boolean>;
     deleteProduct: (id: string) => Promise<void>;
     updateOrderStatus: (id: string, status: string) => Promise<void>;
+    allUsers: any[];
     refreshData: () => Promise<void>;
 }
 
@@ -56,6 +57,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const [cart, setCart] = useState<CartItem[]>([]);
     const [favorites, setFavorites] = useState<string[]>([]);
     const [user, setUser] = useState<any>(null);
+    const [allUsers, setAllUsers] = useState<any[]>([]);
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -89,15 +91,17 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [productsRes, blogRes, ordersRes] = await Promise.all([
+                const [productsRes, blogRes, ordersRes, usersRes] = await Promise.all([
                     fetch('/api/products'),
                     fetch('/api/blog'),
-                    fetch('/api/orders')
+                    fetch('/api/orders'),
+                    fetch('/api/users')
                 ]);
 
                 if (productsRes.ok) setProducts(await productsRes.json());
                 if (blogRes.ok) setBlogPosts(await blogRes.json());
                 if (ordersRes.ok) setOrders(await ordersRes.json());
+                if (usersRes.ok) setAllUsers(await usersRes.json());
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -252,15 +256,17 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const refreshData = async () => {
         setLoading(true);
         try {
-            const [productsRes, blogRes, ordersRes] = await Promise.all([
+            const [productsRes, blogRes, ordersRes, usersRes] = await Promise.all([
                 fetch('/api/products'),
                 fetch('/api/blog'),
-                fetch('/api/orders')
+                fetch('/api/orders'),
+                fetch('/api/users')
             ]);
 
             if (productsRes.ok) setProducts(await productsRes.json());
             if (blogRes.ok) setBlogPosts(await blogRes.json());
             if (ordersRes.ok) setOrders(await ordersRes.json());
+            if (usersRes.ok) setAllUsers(await usersRes.json());
         } catch (error) {
             console.error('Error refreshing data:', error);
         } finally {
@@ -299,6 +305,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 updateProduct,
                 deleteProduct,
                 updateOrderStatus,
+                allUsers,
                 refreshData
             }}
         >
