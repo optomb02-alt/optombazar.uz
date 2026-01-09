@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getProductBySlug, getProducts } from '@/lib/db';
+import { getProductBySlug, getProducts, getRelatedProducts } from '@/lib/db';
 import ProductDetailClient from './ProductDetailClient';
 
 interface ProductPageProps {
@@ -70,6 +70,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
         notFound();
     }
 
+    // Fetch related products from the same category
+    const relatedProducts = product.category
+        ? await getRelatedProducts(product.category, product.id, 4)
+        : [];
+
     // Structured data for SEO (JSON-LD)
     const structuredData = {
         '@context': 'https://schema.org',
@@ -97,7 +102,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
             />
-            <ProductDetailClient product={product} />
+            <ProductDetailClient product={product} relatedProducts={relatedProducts} />
         </>
     );
 }
+

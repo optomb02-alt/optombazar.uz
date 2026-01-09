@@ -13,9 +13,10 @@ import MobileNavbar from '@/components/MobileNavbar';
 
 interface ProductDetailClientProps {
     product: any;
+    relatedProducts?: any[];
 }
 
-export default function ProductDetailClient({ product }: ProductDetailClientProps) {
+export default function ProductDetailClient({ product, relatedProducts = [] }: ProductDetailClientProps) {
     const { language, t } = useLanguage();
     const { addToCart, favorites, toggleFavorite, getCategoryById } = useStore();
     const { showToast } = useToast();
@@ -32,9 +33,10 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
     const mainImage = product.images?.[currentImageIndex] || 'https://via.placeholder.com/600';
 
-    const handleAddToCart = () => {
-        addToCart(product);
-        showToast(`${name} ${t('addToCart')}`, 'success');
+    const handleAddToCart = (p: any = product) => {
+        addToCart(p);
+        const productName = language === 'uz' ? p.name_uz : p.name_ru;
+        showToast(`${productName} ${t('addToCart')}`, 'success');
     };
 
     const handleShare = async () => {
@@ -152,7 +154,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                             {/* Actions */}
                             <div className="flex gap-3 pt-4">
                                 <button
-                                    onClick={handleAddToCart}
+                                    onClick={() => handleAddToCart()}
                                     className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all active:scale-95"
                                 >
                                     <ShoppingCart size={20} />
@@ -178,6 +180,51 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                             </div>
                         </div>
                     </div>
+
+                    {/* Related Products Section */}
+                    {relatedProducts.length > 0 && (
+                        <div className="mt-12 pt-8 border-t border-gray-200">
+                            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">
+                                {t('relatedProducts') || "O'xshash mahsulotlar"}
+                            </h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {relatedProducts.map((relatedProduct: any) => {
+                                    const relName = language === 'uz' ? relatedProduct.name_uz : relatedProduct.name_ru;
+                                    const relImage = relatedProduct.images?.[0] || 'https://via.placeholder.com/300';
+                                    return (
+                                        <div key={relatedProduct.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
+                                            <Link href={`/product/${relatedProduct.slug || relatedProduct.id}`}>
+                                                <div className="aspect-square bg-gray-100 overflow-hidden">
+                                                    <img
+                                                        src={relImage}
+                                                        alt={relName}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    />
+                                                </div>
+                                            </Link>
+                                            <div className="p-3">
+                                                <Link href={`/product/${relatedProduct.slug || relatedProduct.id}`}>
+                                                    <h3 className="font-medium text-gray-900 text-sm line-clamp-2 hover:text-blue-600 transition-colors">
+                                                        {relName}
+                                                    </h3>
+                                                </Link>
+                                                <p className="text-blue-600 font-bold mt-1 text-sm">
+                                                    {formatPrice(relatedProduct.price)} <span className="text-xs text-gray-400">UZS</span>
+                                                </p>
+                                                <button
+                                                    onClick={() => handleAddToCart(relatedProduct)}
+                                                    className="w-full mt-2 flex items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-3 rounded-lg text-xs transition-colors"
+                                                >
+                                                    <ShoppingCart size={14} />
+                                                    {t('addToCart')}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
 
@@ -186,3 +233,4 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
         </div>
     );
 }
+

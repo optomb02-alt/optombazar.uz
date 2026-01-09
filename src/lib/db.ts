@@ -223,3 +223,22 @@ export async function getCategories() {
         return [];
     }
 }
+
+// Get related products by category (excluding the current product)
+export async function getRelatedProducts(category: string, currentProductId: number, limit: number = 4) {
+    const sql = getSql();
+    if (!sql) return [];
+
+    try {
+        const products = await sql`
+            SELECT * FROM products 
+            WHERE category = ${category} AND id != ${currentProductId}
+            ORDER BY created_at DESC
+            LIMIT ${limit}
+        `;
+        return products;
+    } catch (error) {
+        console.error('Error fetching related products:', error);
+        return [];
+    }
+}

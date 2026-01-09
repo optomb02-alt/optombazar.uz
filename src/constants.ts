@@ -246,7 +246,12 @@ export const TEXTS: Translations = {
   noOrders: { uz: 'Sizda hali buyurtmalar yo\'q', ru: 'У вас пока нет заказов' },
   registeredAt: { uz: 'Ro\'yxatdan o\'tgan sana', ru: 'Дата регистрации' },
   updateInfo: { uz: 'Ma\'lumotlarni yangilash', ru: 'Обновить данные' },
-  infoUpdated: { uz: 'Ma\'lumotlar yangilandi', ru: 'Данные обновлены' }
+  infoUpdated: { uz: 'Ma\'lumotlar yangilandi', ru: 'Данные обновлены' },
+
+  // Product Page
+  relatedProducts: { uz: "O'xshash mahsulotlar", ru: 'Похожие товары' },
+  back: { uz: 'Orqaga', ru: 'Назад' },
+  linkCopied: { uz: 'Havola nusxalandi', ru: 'Ссылка скопирована' }
 };
 
 export const MOCK_PRODUCTS = [
