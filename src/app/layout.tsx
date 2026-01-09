@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     template: "%s | Optombazar.uz",
   },
   description: "Eng arzon ulgurji narxlarda paketlar, bir martalik idishlar va xo'jalik mollari. Toshkent bo'ylab yetkazib berish xizmati.",
-  keywords: ["ulgurji savdo", "optom bozor", "toshkent", "yetkazib berish", "arzon narxlar", "paketlar", "idishlar"],
+  keywords: ["ulgurji savdo", "optom bozor", "toshkent", "yetkazib berish", "arzon narxlar", "paketlar", "idishlar", "bir martalik idishlar", "plastik idishlar", "xo'jalik mollari", "optombazar", "ulgurji narx", "wholesale uzbekistan", "toshkent optom"],
   authors: [{ name: "Optombazar" }],
   creator: "Optombazar",
   publisher: "Optombazar",
@@ -36,10 +36,10 @@ export const metadata: Metadata = {
     description: "Eng arzon ulgurji narxlarda paketlar, bir martalik idishlar va xo'jalik mollari.",
     images: [
       {
-        url: "/icons/icon-512.png",
+        url: "/logo.png",
         width: 512,
         height: 512,
-        alt: "Optombazar Logo",
+        alt: "Optombazar.uz - Ulgurji Savdo Platformasi",
       },
     ],
   },
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Optombazar.uz - Ulgurji Savdo Platformasi",
     description: "Eng arzon ulgurji narxlarda paketlar, bir martalik idishlar va xo'jalik mollari.",
-    images: ["/icons/icon-512.png"],
+    images: ["/logo.png"],
   },
   robots: {
     index: true,

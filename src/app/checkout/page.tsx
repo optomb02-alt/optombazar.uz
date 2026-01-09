@@ -20,7 +20,7 @@ const CheckoutSteps: React.FC<{ currentStep: number }> = ({ currentStep }) => {
     ];
 
     return (
-        <div className="mb-12">
+        <div className="mb-6">
             <div className="flex items-center justify-between relative max-w-2xl mx-auto">
                 <div className="absolute left-0 right-0 top-5 h-1 bg-slate-100 -z-10 rounded-full" />
                 <div
@@ -77,6 +77,9 @@ export default function CheckoutPage() {
     let deliveryCost = (deliveryMethod === 'delivery' && !isFreeDelivery) ? STANDARD_DELIVERY_COST : 0;
     const finalTotal = cartTotal + deliveryCost;
 
+    // Format price consistently to avoid hydration mismatch
+    const formatPrice = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
     const handleGetLocation = () => {
         if (!navigator.geolocation) {
             showToast('Geolocation is not supported', 'error');
@@ -87,7 +90,37 @@ export default function CheckoutPage() {
             async (position) => {
                 const { latitude, longitude } = position.coords;
                 setLocation({ latitude, longitude });
-                setAddress((prev) => `${prev}\n📍 Lat: ${latitude}, Lng: ${longitude}\n🔗 https://www.google.com/maps?q=${latitude},${longitude}`);
+
+                try {
+                    // Reverse geocoding orqali manzilni olish (Nominatim - bepul)
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=uz`,
+                        { headers: { 'User-Agent': 'Optombazar/1.0' } }
+                    );
+                    const data = await response.json();
+
+                    if (data && data.address) {
+                        const addr = data.address;
+                        // Manzilni formatlash: ko'cha, uy raqami, mahalla, tuman
+                        const parts = [];
+                        if (addr.road) parts.push(addr.road);
+                        if (addr.house_number) parts.push(addr.house_number + '-uy');
+                        if (addr.neighbourhood || addr.suburb) parts.push(addr.neighbourhood || addr.suburb);
+                        if (addr.city || addr.town || addr.village) parts.push(addr.city || addr.town || addr.village);
+
+                        const formattedAddress = parts.length > 0
+                            ? parts.join(', ')
+                            : data.display_name?.split(',').slice(0, 3).join(', ') || `${latitude}, ${longitude}`;
+
+                        setAddress(formattedAddress + `\n🔗 https://yandex.uz/maps/?ll=${longitude},${latitude}&z=17&pt=${longitude},${latitude}`);
+                    } else {
+                        setAddress(`📍 ${latitude}, ${longitude}\n🔗 https://yandex.uz/maps/?ll=${longitude},${latitude}&z=17`);
+                    }
+                } catch (error) {
+                    // Agar API ishlamasa, koordinatalarni ko'rsatish
+                    setAddress(`📍 ${latitude}, ${longitude}\n🔗 https://yandex.uz/maps/?ll=${longitude},${latitude}&z=17`);
+                }
+
                 showToast(t('locationFound'), 'success');
                 setIsLocating(false);
             },
@@ -132,38 +165,38 @@ export default function CheckoutPage() {
     return (
         <div className="min-h-screen flex flex-col bg-slate-50/50">
             <Header />
-            <main className="flex-1 py-12">
+            <main className="flex-1 py-6">
                 <div className="container mx-auto px-4 max-w-6xl">
-                    <div className="mb-12">
-                        <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold mb-6 group transition-colors">
+                    <div className="mb-4">
+                        <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold mb-4 group transition-colors">
                             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                             {t('backToShop')}
                         </button>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">{t('checkout')}</h1>
+                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">{t('checkout')}</h1>
                     </div>
 
                     <CheckoutSteps currentStep={getCurrentStep()} />
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         {/* Form */}
                         <div className="lg:col-span-7 space-y-8 animate-fade-in">
-                            <div className="bg-white rounded-[40px] p-8 md:p-12 shadow-sm border border-slate-100 space-y-10">
+                            <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-slate-100 space-y-5">
                                 {/* Section 1: Contact */}
-                                <div className="space-y-6">
+                                <div className="space-y-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
-                                            <Check size={20} />
+                                        <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
+                                            <Check size={16} />
                                         </div>
-                                        <h2 className="text-xl font-black text-slate-900">1. {language === 'uz' ? 'Aloqa ma\'lumotlari' : 'Контактные данные'}</h2>
+                                        <h2 className="text-base font-black text-slate-900">1. {language === 'uz' ? 'Aloqa ma\'lumotlari' : 'Контактные данные'}</h2>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">{t('name')}</label>
                                             <input
                                                 type="text"
                                                 value={name}
                                                 onChange={(e) => setName(e.target.value)}
-                                                className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:bg-white outline-none transition-all font-bold text-slate-900"
+                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:bg-white outline-none transition-all font-medium text-slate-900 text-sm"
                                                 placeholder="John Doe"
                                             />
                                         </div>
@@ -173,7 +206,7 @@ export default function CheckoutPage() {
                                                 type="tel"
                                                 value={phone}
                                                 onChange={(e) => setPhone(e.target.value)}
-                                                className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:bg-white outline-none transition-all font-bold text-slate-900"
+                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:bg-white outline-none transition-all font-medium text-slate-900 text-sm"
                                                 placeholder="+998"
                                             />
                                         </div>
@@ -181,45 +214,43 @@ export default function CheckoutPage() {
                                 </div>
 
                                 {/* Section 2: Delivery */}
-                                <div className="space-y-6 pt-10 border-t border-slate-50">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
-                                            <Truck size={20} />
+                                <div className="space-y-3 pt-4 border-t border-slate-50">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
+                                            <Truck size={16} />
                                         </div>
-                                        <h2 className="text-xl font-black text-slate-900">2. {t('deliveryMethod')}</h2>
+                                        <h2 className="text-base font-black text-slate-900">2. {t('deliveryMethod')}</h2>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-2">
                                         {[
                                             { id: 'delivery', icon: Truck, title: t('delivery'), note: t('deliveryNote') },
                                             { id: 'pickup', icon: Check, title: t('pickup'), note: 'Bepul' },
                                             { id: 'yandex', icon: Send, title: t('yandex'), note: t('yandexNote') },
                                             { id: 'regional_mail', icon: Mail, title: t('regional'), note: t('regionalNote') }
                                         ].map((method: any) => (
-                                            <label key={method.id} className={`p-6 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4 ${deliveryMethod === method.id ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-50 bg-slate-50/50 hover:bg-white hover:border-slate-200'}`}>
+                                            <label key={method.id} className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-center gap-3 ${deliveryMethod === method.id ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-200'}`}>
                                                 <input type="radio" value={method.id} checked={deliveryMethod === method.id} onChange={(e) => setDeliveryMethod(e.target.value as any)} className="hidden" />
-                                                <div className="flex justify-between items-start">
-                                                    <div className={`p-3 rounded-2xl ${deliveryMethod === method.id ? 'bg-indigo-600 text-white' : 'bg-white text-slate-400'}`}>
-                                                        {method.icon && <method.icon size={20} />}
-                                                    </div>
-                                                    {deliveryMethod === method.id && <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center"><Check size={12} className="text-white" /></div>}
+                                                <div className={`p-2 rounded-lg ${deliveryMethod === method.id ? 'bg-indigo-600 text-white' : 'bg-white text-slate-400'}`}>
+                                                    {method.icon && <method.icon size={16} />}
                                                 </div>
-                                                <div>
-                                                    <p className="font-black text-slate-900">{method.title}</p>
-                                                    <p className="text-xs text-slate-500 mt-1">{method.note}</p>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-bold text-slate-900 text-sm">{method.title}</p>
+                                                    <p className="text-[10px] text-slate-500 truncate">{method.note}</p>
                                                 </div>
+                                                {deliveryMethod === method.id && <div className="w-4 h-4 bg-indigo-600 rounded-full flex items-center justify-center"><Check size={10} className="text-white" /></div>}
                                             </label>
                                         ))}
                                     </div>
 
                                     {deliveryMethod !== 'pickup' && (
-                                        <div className="space-y-4 animate-fade-in">
+                                        <div className="space-y-3 animate-fade-in">
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">{t('address')}</label>
                                                 <textarea
                                                     value={address}
                                                     onChange={(e) => setAddress(e.target.value)}
-                                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-[32px] focus:ring-2 focus:ring-indigo-500/20 focus:bg-white outline-none transition-all font-bold text-slate-900 h-32 resize-none"
+                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:bg-white outline-none transition-all font-medium text-slate-900 text-sm h-20 resize-none"
                                                     placeholder={t('addressPlaceholder')}
                                                 />
                                             </div>
@@ -227,7 +258,7 @@ export default function CheckoutPage() {
                                                 type="button"
                                                 onClick={handleGetLocation}
                                                 disabled={isLocating}
-                                                className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-900 hover:text-white text-slate-900 border-2 border-slate-100 py-5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-sm"
+                                                className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-900 hover:text-white text-slate-900 border border-slate-200 py-3 rounded-xl font-bold text-xs uppercase tracking-wide transition-all"
                                             >
                                                 {isLocating ? <Loader2 size={18} className="animate-spin" /> : <MapPin size={18} />}
                                                 {isLocating ? t('detecting') : t('detectLocation')}
@@ -240,27 +271,27 @@ export default function CheckoutPage() {
 
                         {/* Order Summary */}
                         <div className="lg:col-span-5">
-                            <div className="bg-slate-900 rounded-[40px] p-10 text-white shadow-2xl shadow-indigo-900/20 sticky top-28 overflow-hidden">
+                            <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-2xl shadow-indigo-900/20 sticky top-20 overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
-                                <h2 className="text-2xl font-black mb-10 tracking-tight">{language === 'uz' ? 'Xarid Xulosasi' : 'Итого'}</h2>
+                                <h2 className="text-xl font-black mb-6 tracking-tight">{language === 'uz' ? 'Xarid Xulosasi' : 'Итого'}</h2>
 
-                                <div className="space-y-6 mb-10">
+                                <div className="space-y-4 mb-6">
                                     <div className="flex justify-between items-center text-slate-400">
                                         <span className="text-xs font-black uppercase tracking-widest">{t('subtotal') || 'Mahsulotlar'}</span>
-                                        <span className="font-bold text-white">{cartTotal.toLocaleString()} UZS</span>
+                                        <span className="font-bold text-white">{formatPrice(cartTotal)} UZS</span>
                                     </div>
                                     {deliveryCost > 0 && (
                                         <div className="flex justify-between items-center text-slate-400">
                                             <span className="text-xs font-black uppercase tracking-widest">{t('delivery')}</span>
-                                            <span className="font-bold text-white">{deliveryCost.toLocaleString()} UZS</span>
+                                            <span className="font-bold text-white">{formatPrice(deliveryCost)} UZS</span>
                                         </div>
                                     )}
 
                                     <div className="pt-8 border-t border-white/10 flex justify-between items-end">
                                         <span className="text-xs font-black uppercase tracking-widest text-indigo-400">{t('total')}</span>
                                         <div className="text-right">
-                                            <div className="text-4xl font-black tracking-tight">{finalTotal.toLocaleString()}</div>
+                                            <div className="text-4xl font-black tracking-tight">{formatPrice(finalTotal)}</div>
                                             <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">UZS</div>
                                         </div>
                                     </div>

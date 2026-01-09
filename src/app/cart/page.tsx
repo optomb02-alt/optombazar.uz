@@ -24,6 +24,9 @@ export default function CartPage() {
     const isMinOrderMet = cartTotal >= MIN_ORDER_AMOUNT;
     const isFreeDelivery = cartTotal >= FREE_DELIVERY_THRESHOLD;
 
+    // Format price consistently to avoid hydration mismatch
+    const formatPrice = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
     if (cart.length === 0) {
         return (
             <div className="min-h-screen flex flex-col bg-slate-50/50">
@@ -75,7 +78,7 @@ export default function CartPage() {
                                 </div>
                                 <div className="text-sm">
                                     <p className="font-black text-amber-900 leading-tight">{t('minOrderWarning')}</p>
-                                    <p className="text-amber-700 mt-1">Kamida {MIN_ORDER_AMOUNT.toLocaleString()} UZS lik mahsulot oling.</p>
+                                    <p className="text-amber-700 mt-1">Kamida {formatPrice(MIN_ORDER_AMOUNT)} UZS lik mahsulot oling.</p>
                                 </div>
                             </div>
                         )}
@@ -107,7 +110,7 @@ export default function CartPage() {
                                             <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-4 border-t border-slate-50">
                                                 <div className="flex items-baseline gap-1">
                                                     <span className="text-2xl font-black text-slate-900">
-                                                        {(item.product.price * item.quantity).toLocaleString()}
+                                                        {formatPrice(item.product.price * item.quantity)}
                                                     </span>
                                                     <span className="text-[10px] font-black text-indigo-600 uppercase">UZS</span>
                                                 </div>
@@ -157,7 +160,7 @@ export default function CartPage() {
                                 <div className="space-y-6">
                                     <div className="flex justify-between items-center text-slate-400">
                                         <span className="text-xs font-black uppercase tracking-widest">{language === 'uz' ? 'Mahsulotlar' : 'Товары'}</span>
-                                        <span className="font-bold text-white">{cartTotal.toLocaleString()} UZS</span>
+                                        <span className="font-bold text-white">{formatPrice(cartTotal)} UZS</span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('delivery')}</span>
@@ -169,7 +172,7 @@ export default function CartPage() {
                                     <div className="pt-6 border-t border-white/10 flex justify-between items-end">
                                         <span className="text-xs font-black uppercase tracking-widest text-indigo-400">{t('total')}</span>
                                         <div className="text-right">
-                                            <div className="text-3xl font-black tracking-tight">{cartTotal.toLocaleString()}</div>
+                                            <div className="text-3xl font-black tracking-tight">{formatPrice(cartTotal)}</div>
                                             <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">UZS</div>
                                         </div>
                                     </div>

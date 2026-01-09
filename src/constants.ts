@@ -108,8 +108,25 @@ export const TEXTS: Translations = {
   removeFromFavorites: { uz: 'Saralanganlardan o\'chirildi', ru: 'Удалено из избранного' },
 
   // Badges
-  badgeNew: { uz: 'Yangi', ru: 'New' },
+  badgeNew: { uz: 'Yangi', ru: 'Новое' },
   badgeLowStock: { uz: 'Kam qoldi', ru: 'Мало' },
+  inStock: { uz: 'Mavjud', ru: 'В наличии' },
+  outOfStock: { uz: 'Tugagan', ru: 'Нет в наличии' },
+  sale: { uz: 'Aksiya', ru: 'Акция' },
+  new: { uz: 'Yangi', ru: 'Новое' },
+  popular: { uz: 'Ommabop', ru: 'Хит' },
+  all: { uz: 'Barchasi', ru: 'Все' },
+  allProducts: { uz: 'Barcha Mahsulotlar', ru: 'Все Товары' },
+  product: { uz: 'mahsulot', ru: 'товар' },
+  products: { uz: 'mahsulotlar', ru: 'товары' },
+  reviews: { uz: 'sharh', ru: 'отзыв' },
+  fastDelivery: { uz: 'Tez yetkazish', ru: 'Быстрая доставка' },
+  guarantee: { uz: 'Kafolat', ru: 'Гарантия' },
+  support247: { uz: '24/7 Yordam', ru: '24/7 Поддержка' },
+  bonuses: { uz: 'Bonuslar', ru: 'Бонусы' },
+  clearFilter: { uz: 'Filtrni tozalash', ru: 'Сбросить фильтр' },
+  notFound: { uz: 'Topilmadi', ru: 'Не найдено' },
+  tryOther: { uz: 'Boshqa so\'z bilan qidiring', ru: 'Попробуйте другой запрос' },
 
   // Cart & Orders
   cart: { uz: 'Savat', ru: 'Корзина' },

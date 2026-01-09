@@ -34,9 +34,18 @@ interface StoreContextType {
     // Categories
     categories: Category[];
     getCategoryById: (id: string) => Category | undefined;
+    getMainCategories: () => Category[];
+    getSubcategories: (parentId: string) => Category[];
 
     // Orders
     placeOrder: (order: any) => Promise<boolean>;
+
+    // Administrative Actions
+    addProduct: (product: any) => Promise<boolean>;
+    updateProduct: (product: any) => Promise<boolean>;
+    deleteProduct: (id: string) => Promise<void>;
+    updateOrderStatus: (id: string, status: string) => Promise<void>;
+    refreshData: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -157,6 +166,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 body: JSON.stringify(order),
             });
             if (res.ok) {
+                const newOrder = await res.json();
+                setOrders(prev => [newOrder, ...prev]);
                 clearCart();
                 return true;
             }
@@ -166,6 +177,99 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             return false;
         }
     };
+
+    const addProduct = async (product: any) => {
+        try {
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(product),
+            });
+            if (res.ok) {
+                const newProduct = await res.json();
+                setProducts(prev => [newProduct, ...prev]);
+                return true;
+            }
+            const errData = await res.json();
+            console.error('Failed to add product:', errData);
+            return false;
+        } catch (error) {
+            console.error('Error adding product:', error);
+            return false;
+        }
+    };
+
+    const updateProduct = async (product: any) => {
+        try {
+            const res = await fetch('/api/products', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(product),
+            });
+            if (res.ok) {
+                const updated = await res.json();
+                setProducts(prev => prev.map(p => String(p.id) === String(updated.id) ? updated : p));
+                return true;
+            }
+            const errData = await res.json();
+            console.error('Failed to update product:', errData);
+            return false;
+        } catch (error) {
+            console.error('Error updating product:', error);
+            return false;
+        }
+    };
+
+    const deleteProduct = async (id: string) => {
+        try {
+            const res = await fetch(`/api/products?id=${id}`, {
+                method: 'DELETE',
+            });
+            if (res.ok) {
+                setProducts(prev => prev.filter(p => String(p.id) !== String(id)));
+            }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+        }
+    };
+
+    const updateOrderStatus = async (id: string, status: string) => {
+        try {
+            const res = await fetch('/api/orders', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, status }),
+            });
+            if (res.ok) {
+                const updated = await res.json();
+                setOrders(prev => prev.map(o => String(o.id) === String(updated.id) ? updated : o));
+            }
+        } catch (error) {
+            console.error('Error updating order status:', error);
+        }
+    };
+
+    const refreshData = async () => {
+        setLoading(true);
+        try {
+            const [productsRes, blogRes, ordersRes] = await Promise.all([
+                fetch('/api/products'),
+                fetch('/api/blog'),
+                fetch('/api/orders')
+            ]);
+
+            if (productsRes.ok) setProducts(await productsRes.json());
+            if (blogRes.ok) setBlogPosts(await blogRes.json());
+            if (ordersRes.ok) setOrders(await ordersRes.json());
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getMainCategories = () => CATEGORIES.filter(c => !c.parent_id);
+    const getSubcategories = (parentId: string) => CATEGORIES.filter(c => c.parent_id === parentId);
 
     return (
         <StoreContext.Provider
@@ -188,7 +292,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 orders,
                 categories: CATEGORIES,
                 getCategoryById,
+                getMainCategories,
+                getSubcategories,
                 placeOrder,
+                addProduct,
+                updateProduct,
+                deleteProduct,
+                updateOrderStatus,
+                refreshData
             }}
         >
             {children}

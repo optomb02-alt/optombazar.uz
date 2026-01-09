@@ -27,6 +27,9 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     const category = getCategoryById(product.category);
     const categoryName = category ? (language === 'uz' ? category.name_uz : category.name_ru) : '';
 
+    // Format price consistently to avoid hydration mismatch
+    const formatPrice = (num: number) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
     const mainImage = product.images?.[currentImageIndex] || 'https://via.placeholder.com/600';
 
     const handleAddToCart = () => {
@@ -126,7 +129,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                             {/* Price */}
                             <div className="flex items-baseline gap-2">
                                 <span className="text-3xl font-bold text-slate-800">
-                                    {product.price.toLocaleString()}
+                                    {formatPrice(product.price)}
                                 </span>
                                 <span className="text-lg text-gray-500">UZS</span>
                                 <span className="text-sm text-gray-400 ml-2">/ {t('perPack')}</span>

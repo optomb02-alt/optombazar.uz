@@ -132,3 +132,94 @@ export async function getUsers() {
         return [];
     }
 }
+// Product management
+export async function addProduct(product: any) {
+    const sql = getSql();
+    if (!sql) throw new Error('Database not configured');
+
+    try {
+        console.log('Adding product with data:', JSON.stringify(product, null, 2));
+        // Format images as PostgreSQL text[] array literal
+        const imagesArray = product.images || [];
+        const imagesLiteral = `{${imagesArray.map((img: string) => `"${img.replace(/"/g, '\\"')}"`).join(',')}}`;
+        const result = await sql`
+            INSERT INTO products (name_uz, name_ru, description_uz, description_ru, slug, price, items_per_pack, stock, images, video_url, category)
+            VALUES (${product.name_uz || ''}, ${product.name_ru || ''}, ${product.description_uz || ''}, ${product.description_ru || ''}, ${product.slug}, ${Number(product.price) || 0}, ${Number(product.items_per_pack) || 0}, ${Number(product.stock) || 0}, ${imagesLiteral}::text[], ${product.video_url || ''}, ${product.category || ''})
+            RETURNING *
+        `;
+        return result[0];
+    } catch (error: any) {
+        console.error('Error in addProduct SQL:', error);
+        throw error;
+    }
+}
+
+export async function updateProduct(product: any) {
+    const sql = getSql();
+    if (!sql) throw new Error('Database not configured');
+
+    try {
+        console.log('Updating product with data:', JSON.stringify(product, null, 2));
+        // Format images as PostgreSQL text[] array literal
+        const imagesArray = product.images || [];
+        const imagesLiteral = `{${imagesArray.map((img: string) => `"${img.replace(/"/g, '\\"')}"`).join(',')}}`;
+        const result = await sql`
+            UPDATE products 
+            SET name_uz = ${product.name_uz || ''}, name_ru = ${product.name_ru || ''}, description_uz = ${product.description_uz || ''}, description_ru = ${product.description_ru || ''}, 
+                slug = ${product.slug}, price = ${Number(product.price) || 0}, items_per_pack = ${Number(product.items_per_pack) || 0}, stock = ${Number(product.stock) || 0}, 
+                images = ${imagesLiteral}::text[], video_url = ${product.video_url || ''}, category = ${product.category || ''}
+            WHERE id = ${product.id}
+            RETURNING *
+        `;
+        return result[0];
+    } catch (error: any) {
+        console.error('Error in updateProduct SQL:', error);
+        throw error;
+    }
+}
+
+export async function deleteProduct(id: string) {
+    const sql = getSql();
+    if (!sql) throw new Error('Database not configured');
+
+    try {
+        // First delete from favorites/cart if there are foreign keys, 
+        // but in our schema we use JSON or separate local storage mostly.
+        // If there's a many-to-many table, it should be handled here.
+        await sql`DELETE FROM products WHERE id = ${id}`;
+        return true;
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        throw error;
+    }
+}
+
+// Order management
+export async function updateOrderStatus(id: string, status: string) {
+    const sql = getSql();
+    if (!sql) throw new Error('Database not configured');
+
+    try {
+        const result = await sql`
+            UPDATE orders SET status = ${status} WHERE id = ${id} RETURNING *
+        `;
+        return result[0];
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        throw error;
+    }
+}
+
+// Categories
+export async function getCategories() {
+    const sql = getSql();
+    if (!sql) return [];
+
+    try {
+        const categories = await sql`SELECT * FROM categories ORDER BY id ASC`;
+        return categories;
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+    }
+}
